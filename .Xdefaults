@@ -4,7 +4,7 @@ URxvt.font:xft:Lemon:pixelsize=10
 URxvt.boldFont:xft:Lemon:bold:pixelsize=10
 URxvt.italicfont:xft:Lemon:italic:pixelsize=10
 URxvt.bolditalicFont:xft:Lemon:bold:italic:pixelsize=10
-URxvt*letterSpace: 1
+URxvt*letterSpace: -3
 URxvt*allow_bold: true
 ! URXVT FONT SETTINGS
 !------------------------------------------------
