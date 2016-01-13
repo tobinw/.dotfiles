@@ -113,6 +113,6 @@ if ! shopt -oq posix; then
 fi
 
 PATH=$PATH:/home/wtobin/develop/scripts:.
-source /home/wtobin/develop/scripts/aliases
+source ~/aliases
 
 git config --global alias.unadd "reset HEAD"
