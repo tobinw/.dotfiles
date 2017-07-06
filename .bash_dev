@@ -1,0 +1,9 @@
+export DEVROOT=$HOME/develop
+declare -f module > /dev/null 2>&1
+if [ "$?" == "1" ] ; then
+  MODULE_DIR=$DEVROOT/module
+  if [ ! -d $MODULE_DIR ] ; then
+    mkdir $MODULE_DIR
+  fi
+  module use $DEVROOT/module
+fi
