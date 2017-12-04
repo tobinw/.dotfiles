@@ -1,125 +1,132 @@
-# ~/.bashrc: executed by bash(1) for non-login shells.
-# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
-# for examples
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+(setq debug-on-error t)
 
-# If not running interactively, don't do anything
-case $- in
-    *i*) ;;
-      *) return;;
-esac
+; use melpa when we can
+(when (>= emacs-major-version 24)
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+  )
+(prefer-coding-system 'utf-8)
 
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
-HISTCONTROL=ignoreboth
+; make sure we have cc-mode, force *.h files to use c++ mode
+(require 'cc-mode)
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
-# append to the history file, don't overwrite it
-shopt -s histappend
+(require 'company)
+(add-hook 'after-init-hook 'global-company-mode)
+(setq company-idle-delay 0)
+(define-key c-mode-map [(tab)] 'company-complete)
+(define-key c++-mode-map [(tab)] 'company-complete)
 
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
+; add rtags directories to exec and load paths
+(add-to-list 'exec-path "/fasttmp/wtobin/develop/install/rtags/bin")
+(add-to-list 'load-path "/fasttmp/wtobin/develop/rtags/rtags/src")
 
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
+; startup and configure rtags and company-rtags when using cc-mode
+(eval-after-load 'cc-mode
+  '(progn
+     (require 'rtags)
+     (require 'company-rtags)
+     (setq rtags-completions-enabled t)
+     (eval-after-load 'company
+       '(add-to-list
+         'company-backends 'company-rtags))
+     (setq rtags-autostart-diagnostics t)
+     (setq rtags-rdm-includes '("/fasttmp/wtobin/develop/install/llvm/lib/clang/5.0.0/include/"))
+     (add-hook 'find-file-hook 'rtags-start-process-maybe)
+     (mapc (lambda (x)
+             (define-key c-mode-base-map
+               (kbd (concat "C-c r" (car x))) (cdr x)))
+           '(("." . rtags-find-symbol-at-point)
+             ("," . rtags-find-references-at-point)
+             ("v" . rtags-find-virtuals-at-point)
+             ("V" . rtags-print-enum-value-at-point)
+             ("/" . rtags-find-all-references-at-point)
+             ("Y" . rtags-cycle-overlays-on-screen)
+             (">" . rtags-find-symbol)
+             ("<" . rtags-find-references)
+             ("-" . rtags-location-stack-back)
+             ("+" . rtags-location-stack-forward)
+             ("D" . rtags-diagnostics)
+             ("G" . rtags-guess-function-at-point)
+             ("p" . rtags-set-current-project)
+             ("P" . rtags-print-dependencies)
+             ("e" . rtags-reparse-file)
+             ("E" . rtags-preprocess-file)
+             ("R" . rtags-rename-symbol)
+             ("M" . rtags-symbol-info)
+             ("S" . rtags-display-summary)
+             ("O" . rtags-goto-offset)
+             (";" . rtags-find-file)
+             ("F" . rtags-fixit)
+             ("X" . rtags-fix-fixit-at-point)
+             ("B" . rtags-show-rtags-buffer)
+             ("I" . rtags-imenu)
+             ("T" . rtags-taglist)))))
 
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-#shopt -s globstar
+; c/c++ formatting rules
+(setq c-default-style "linux"
+      c-basic-offset 2)
+(c-set-offset 'substatement-open 0)
+(setq-default indent-tabs-mode nil)
+(define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
+(setq inhibit-startup-message t)
+(setq-default show-trailing-whitespace t)
 
-# make less more friendly for non-text input files, see lesspipe(1)
-#[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+; yasnippet c++ snippets to speed things up ; installed using melpa
+(require 'yasnippet)
+(yas-global-mode 1)
 
-# set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
-fi
+;whitespace http://www.emacswiki.org/emacs/WhiteSpace
+(require 'whitespace)
+; tabs are EVIL
+(setq whitespace-style '(tabs tab-mark)) ;turns on white space mode only for tabs
+; show whitespace at the end of lines as well
+(global-whitespace-mode 1)
 
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-    xterm-256color) color_prompt=yes;;
-esac
+;(setq org-log-done 'time)
+;(setq org-log-done 'note)
 
-# uncomment for a colored prompt, if the terminal has the capability; turned
-# off by default to not distract the user: the focus in a terminal window
-# should be on the output of commands, not on the prompt
-#force_color_prompt=yes
+; auto-highlight-mode, highlight matching symbols in the same buffer
+(add-to-list 'load-path "/users/wtobin/.emacs.d/auto-highlight-symbol-mode-master/")
+(require 'auto-highlight-symbol)
+(global-auto-highlight-symbol-mode t)
 
-if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-        # We have color support; assume it's compliant with Ecma-48
-        # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-        # a case would tend to support setf rather than setaf.)
-        color_prompt=yes
-    else
-        color_prompt=
-    fi
-fi
-
-if [ "$color_prompt" = yes ]; then
-    export PROMPT_COMMAND=__prompt_command
-    function __prompt_command() {
-      local RCol='\[\e[0m\]'
-      local Col=""
-      if [ $? != 0 ] ; then
-        Col='\[\e[0;31m\]'
-      else
-        Col='\[\e[0;32m\]'
-      fi
-      PS1="${Col}\w${RCol} > "
-    }
-else
-    PS1='\w > '
-fi
-unset color_prompt force_color_prompt
-
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
-
-# enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-
-    #alias grep='grep --color=auto'
-    #alias fgrep='fgrep --color=auto'
-    #alias egrep='egrep --color=auto'
-fi
-
-# colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-# some more ls aliases
-alias ll='ls -l'
-alias la='ls -A'
-alias l='ls -CF'
-
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
-if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
-fi
-
-git config --global alias.unadd "reset HEAD"
+;; toggle window dedication - trying to get compiler output to go to a sensible buffer
+(setq split-width-threshold nil)
+(setq split-height-threshold nil)
+(defadvice pop-to-buffer (before cancel-other-window first)
+  (ad-set-arg 1 nil))
+(ad-activate 'pop-to-buffer)
+(defun toggle-window-dedicated ()
+  "Toggle whether the current active window is dedicated or not"
+  (interactive)
+  (message
+   (if
+       (let
+           (window (get-buffer-window (current-buffer)))
+         (set-window-dedicated-p window (not (window-dedicated-p window)))
+         )
+       "Window '%s' is dedicated"
+     "Window '%s' is normal")
+   (current-buffer)
+   )
+  )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (yasnippet rtags rudel minimap color-theme autopair))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
