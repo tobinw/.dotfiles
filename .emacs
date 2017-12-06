@@ -9,7 +9,15 @@
 (when (>= emacs-major-version 24)
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
-  )
+  ; try to install all the packages we use
+  (setq package-list '(company rtags company-rtags yasnippet auto-highlight-symbol))
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
+  (dolist (package package-list)
+    (unless (package-installed-p package)
+      (package-install package))))
+
 (prefer-coding-system 'utf-8)
 
 ; make sure we have cc-mode, force *.h files to use c++ mode
@@ -37,7 +45,7 @@
          'company-backends 'company-rtags))
      (setq rtags-autostart-diagnostics t)
      (setq rtags-rdm-includes '("/fasttmp/wtobin/develop/install/llvm/lib/clang/5.0.0/include/"))
-     (add-hook 'find-file-hook 'rtags-start-process-maybe)
+     ; (add-hook 'find-file-hook 'rtags-start-process-maybe)
      (mapc (lambda (x)
              (define-key c-mode-base-map
                (kbd (concat "C-c r" (car x))) (cdr x)))

@@ -12,6 +12,10 @@ shopt -s histappend
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+if [ -f ~/.git-prompt.sh ] ; then
+    source ~/.git-prompt.sh
+fi
+
 #setup ps1
 export GIT_PS1_SHOWDIRTYSTATE=true
 export GIT_PS1_SHOWUPSTREAM=verbose
